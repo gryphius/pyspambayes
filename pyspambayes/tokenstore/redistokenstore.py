@@ -35,7 +35,11 @@ class RedisTokenStore(TokenStoreBase):
     def get_(self,token,what):
         assert what in self.labels
         keyname=self.token_prefix+token
-        return self.redis.hget(keyname,what) or 0
+        count=self.redis.hget(keyname,what)
+        try:
+            return int(self.redis.hget(keyname,what))
+        except:
+            return 0
 
     def get_ham_count(self,token):
         return self.get_(token,'ham')
@@ -45,11 +49,17 @@ class RedisTokenStore(TokenStoreBase):
 
     def get_total_ham_count(self):
         """get the number of known ham messages"""
-        return self.redis.hget(self.total_key,'ham') or 0
+        try:
+            return int(self.redis.hget(self.total_key,'ham'))
+        except:
+            return 0
 
     def get_total_spam_count(self):
         """get the number of known spam messages"""
-        return self.redis.hget(self.total_key,'spam') or 0
+        try:
+            return int(self.redis.hget(self.total_key,'spam'))
+        except:
+            return 0
 
     def learn_(self,tokens,aswhat):
         assert aswhat in self.labels
@@ -78,4 +88,4 @@ class RedisTokenStore(TokenStoreBase):
         self.learn_(tokens,'ham')
 
     def learn_spam(self,tokens):
-        self.lean_(tokens,'spam')
+        self.learn_(tokens,'spam')

@@ -20,6 +20,8 @@ class SpamBayes(object):
 
         self.calc_minimum=0.00000001 # work around division by zero etc
         self.token_minimum=3 # don't make any assumptions about token seen less than this amount
+        self.ham_minimum=1
+        self.spam_minimum=1
 
     def info(self,message):
         """
@@ -33,6 +35,14 @@ class SpamBayes(object):
         """Compute the probability that a message containing a given token is spam
         ( "spamicity of a word" )
         """
+        total_spam=self.tokenstore.get_total_spam_count()
+        if total_spam<self.spam_minimum:
+            return 0.5
+
+        total_ham=self.tokenstore.get_total_ham_count()
+        if total_ham<self.spam_minimum:
+            return 0.5
+
         pr_s = self.spam_bias # probability that any given message is spam
         pr_h = 1-pr_s # probability that any given message is ham
 
@@ -43,8 +53,8 @@ class SpamBayes(object):
         if spam_count + ham_count<self.token_minimum:
             pr_s_w=0.5
         else:
-            pr_w_s = float(spam_count) / self.tokenstore.get_total_spam_count() #  the probability that the token appears in spam messages
-            pr_w_h = float(ham_count) / self.tokenstore.get_total_ham_count() #   the probability that the token appears in ham messages
+            pr_w_s = float(spam_count) / total_spam #  the probability that the token appears in spam messages
+            pr_w_h = float(ham_count) / total_ham #   the probability that the token appears in ham messages
 
             divisor=( pr_w_s *  pr_s  + pr_w_h * pr_h )
             if divisor<self.calc_minimum:
@@ -79,11 +89,15 @@ class SpamBayes(object):
 
             n = math.log(x) - math.log(spamicity)
             total+=n
-            #if self.verbose:
-            #    self.info("n=%.4f"%n)
-            #    self.info("total is now %.4f"%total)
+            if self.verbose:
+                self.info("n=%.4f"%n)
+                self.info("total is now %.4f"%total)
 
-        probability=1.0/(1+math.pow(math.e,total))
+        try:
+            probability=1.0/(1+math.pow(math.e,total))
+        except OverflowError:
+            return 0.0
+
         return round(probability,4)
 
     def learn_ham(self,text):
