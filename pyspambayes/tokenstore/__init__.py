@@ -36,11 +36,11 @@ class TokenStoreBase(object):
         return self.spam_count
 
     def learn_ham(self,tokens):
-        for t in tokens:
+        for t in set(tokens):
             self.ham_tokens.append(t)
         self.ham_count+=1
 
     def learn_spam(self,tokens):
-        for t in tokens:
+        for t in set(tokens):
             self.spam_tokens.append(t)
         self.spam_count+=1
