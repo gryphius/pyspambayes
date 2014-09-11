@@ -30,14 +30,14 @@ class SpamBayes(object):
         print message
 
     def single_token_spam_probability(self,token):
-        """Compute the probability that a message containing a given word is spam
+        """Compute the probability that a message containing a given token is spam
         ( "spamicity of a word" )
         """
         pr_s = self.spam_bias # probability that any given message is spam
-        pr_h = 1-pr_s # probability that any given message is spam
+        pr_h = 1-pr_s # probability that any given message is ham
 
-        spam_count = self.tokenstore.get_spam_count(token)
-        ham_count = self.tokenstore.get_ham_count(token)
+        spam_count = self.tokenstore.get_spam_count(token) # number of known spams containing this token
+        ham_count = self.tokenstore.get_ham_count(token) # number of known hams containing this token
 
         # "Dealing with rare words"
         if spam_count + ham_count<self.token_minimum:
